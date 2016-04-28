@@ -4,7 +4,6 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
-	"hash/crc32"
 	"io"
 	"log"
 	"os"
@@ -80,22 +79,19 @@ func walkFn(path string, fi os.FileInfo, err error) (e error) {
 	return nil
 }
 
-func hash_file_crc32(filePath string, polynomial uint32) (string, error) {
-	var returnCRC32String string
+func hash_file_crc32(filePath string, polynomial uint32) (crc32 string, err error) {
 	file, err := os.Open(filePath)
 	if err != nil {
-		return returnCRC32String, err
+		return "", err
 	}
 	defer file.Close()
 	tablePolynomial := crc32.MakeTable(polynomial)
 	hash := crc32.New(tablePolynomial)
-	if _, err := io.Copy(hash, file); err != nil {
-		return returnCRC32String, err
+	if _, err = io.Copy(hash, file); err != nil {
+		return
 	}
-	hashInBytes := hash.Sum(nil)[:]
-	returnCRC32String = hex.EncodeToString(hashInBytes)
-	return returnCRC32String, nil
-
+	crc32 = hex.EncodeToString(hash.Sum(nil))
+	return
 }
 
 type File struct {
