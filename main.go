@@ -4,6 +4,7 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
+	"hash/crc32"
 	"io"
 	"log"
 	"os"
@@ -33,6 +34,10 @@ func main() {
 	}
 
 	app.Action = func(c *cli.Context) {
+		if len(os.Args) != 2 {
+			cli.ShowSubcommandHelp(c)
+			os.Exit(1)
+		}
 		go func() {
 			if err := filepath.Walk(os.Args[1], walkFn); err != nil {
 				log.Fatalf(err.Error())
@@ -79,7 +84,7 @@ func walkFn(path string, fi os.FileInfo, err error) (e error) {
 	return nil
 }
 
-func hash_file_crc32(filePath string, polynomial uint32) (crc32 string, err error) {
+func hash_file_crc32(filePath string, polynomial uint32) (hash_string string, err error) {
 	file, err := os.Open(filePath)
 	if err != nil {
 		return "", err
@@ -90,7 +95,7 @@ func hash_file_crc32(filePath string, polynomial uint32) (crc32 string, err erro
 	if _, err = io.Copy(hash, file); err != nil {
 		return
 	}
-	crc32 = hex.EncodeToString(hash.Sum(nil))
+	hash_string = hex.EncodeToString(hash.Sum(nil))
 	return
 }
 
